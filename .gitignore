@@ -1,0 +1,28 @@
+# Deno
+.deno/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Project internal documentation
+PERMISSIONS.md
+.trae/
