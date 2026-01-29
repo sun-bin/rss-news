@@ -22,11 +22,10 @@ function cleanLink(link: string): string {
   
   // 确保链接以 http:// 或 https:// 开头
   if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    // 如果链接不以 http 开头，可能是相对路径或无效链接
     if (cleaned.startsWith("//")) {
       cleaned = "https:" + cleaned;
     } else if (cleaned.startsWith("/")) {
-      cleaned = "#"; // 相对路径，暂时用 # 代替
+      cleaned = "#";
     } else if (!cleaned || cleaned === "null" || cleaned === "undefined") {
       cleaned = "#";
     }
@@ -35,7 +34,7 @@ function cleanLink(link: string): string {
   return cleaned;
 }
 
-// 模拟数据 - 实际项目中应该从缓存获取
+// 模拟数据
 const mockArticles: Article[] = [
   {
     id: "1",
@@ -95,7 +94,6 @@ const mockArticles: Article[] = [
 
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
-    // 计算分类统计
     const byCategory: Record<string, number> = {};
     mockArticles.forEach(article => {
       byCategory[article.category] = (byCategory[article.category] || 0) + 1;
@@ -199,7 +197,7 @@ export default function Home({ data }: PageProps<Data>) {
             </div>
           ) : (
             <div class="grid">
-              {articles.map((article, index) => (
+              {articles.map((article) => (
                 <a
                   href={cleanLink(article.link)}
                   class="card"
