@@ -1,5 +1,6 @@
 import { defineConfig } from "$fresh/server.ts";
 
 export default defineConfig({
-  // Fresh 配置
+  // 静态文件配置
+  staticDir: "./static",
 });
