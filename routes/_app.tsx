@@ -1,7 +1,15 @@
 import { type PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 
-const globalStyles = `
-/* Apple Design System */
+export default function App({ Component }: PageProps) {
+  return (
+    <html lang="zh-CN">
+      <Head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>RSS 新闻聚合器</title>
+        <style>
+{`
 :root {
   --apple-white: #ffffff;
   --apple-bg: #f5f5f7;
@@ -420,17 +428,9 @@ body {
     text-align: center;
   }
 }
-`;
-
-export default function App({ Component }: PageProps) {
-  return (
-    <html lang="zh-CN">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>RSS 新闻聚合器</title>
-        <style>{globalStyles}</style>
-      </head>
+`}
+        </style>
+      </Head>
       <body>
         <Component />
       </body>
