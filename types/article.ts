@@ -6,7 +6,7 @@ export interface Article {
   link: string;
   publishedAt: Date;
   category: string;
-  tags: string[];
+  tags?: string[];
   source: {
     name: string;
     url: string;
