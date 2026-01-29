@@ -1,192 +1,236 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import type { Article } from "$types/article.ts";
-import { getArticlesWithCache } from "$lib/cache/strategy.ts";
-import { CATEGORIES } from "$config/categories.ts";
-import type { Category } from "$types/category.ts";
+import type { Article } from "../types/article.ts";
+import { CATEGORIES } from "../config/categories.ts";
 
 interface Data {
   articles: Article[];
-  categories: Category[];
   stats: {
     total: number;
     byCategory: Record<string, number>;
   };
 }
 
+// 模拟数据 - 实际项目中应该从缓存获取
+const mockArticles: Article[] = [
+  {
+    id: "1",
+    title: "Apple 发布全新 M4 芯片，性能提升显著",
+    description: "苹果公司今日发布了全新的 M4 芯片，采用先进的 3nm 工艺，在性能和能效方面都有显著提升...",
+    link: "#",
+    publishedAt: new Date(),
+    category: "technology",
+    source: { name: "TechCrunch", url: "#" }
+  },
+  {
+    id: "2",
+    title: "全球气候变化峰会达成重要共识",
+    description: "在最新的气候变化峰会上，各国代表就减排目标达成重要共识，承诺在2030年前实现碳排放大幅减少...",
+    link: "#",
+    publishedAt: new Date(Date.now() - 3600000),
+    category: "world",
+    source: { name: "Reuters", url: "#" }
+  },
+  {
+    id: "3",
+    title: "全球股市创年度新高，投资者信心增强",
+    description: "受利好消息影响，全球主要股市今日集体上涨，创下年度新高，市场投资者信心明显增强...",
+    link: "#",
+    publishedAt: new Date(Date.now() - 7200000),
+    category: "business",
+    source: { name: "Bloomberg", url: "#" }
+  },
+  {
+    id: "4",
+    title: "科学家发现新型抗癌药物，临床试验效果显著",
+    description: "一项最新的医学研究表明，新型抗癌药物在临床试验中展现出显著的治疗效果...",
+    link: "#",
+    publishedAt: new Date(Date.now() - 10800000),
+    category: "science",
+    source: { name: "Nature", url: "#" }
+  },
+  {
+    id: "5",
+    title: "世界杯决赛精彩回顾：冠军诞生时刻",
+    description: "昨晚的世界杯决赛精彩纷呈，双方球队展开激烈角逐，最终冠军在点球大战中诞生...",
+    link: "#",
+    publishedAt: new Date(Date.now() - 14400000),
+    category: "sports",
+    source: { name: "ESPN", url: "#" }
+  },
+  {
+    id: "6",
+    title: "人工智能在医疗领域的最新突破",
+    description: "AI技术在医疗诊断领域取得重大突破，新算法能够更准确地识别早期疾病迹象...",
+    link: "#",
+    publishedAt: new Date(Date.now() - 18000000),
+    category: "technology",
+    source: { name: "The Verge", url: "#" }
+  }
+];
+
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
-    try {
-      const allArticles = await getArticlesWithCache();
-      const byCategory: Record<string, number> = {};
-      for (const article of allArticles) {
-        byCategory[article.category] = (byCategory[article.category] || 0) + 1;
+    // 计算分类统计
+    const byCategory: Record<string, number> = {};
+    mockArticles.forEach(article => {
+      byCategory[article.category] = (byCategory[article.category] || 0) + 1;
+    });
+
+    return ctx.render({
+      articles: mockArticles,
+      stats: {
+        total: mockArticles.length,
+        byCategory
       }
-      return ctx.render({
-        articles: allArticles.slice(0, 100),
-        categories: CATEGORIES,
-        stats: { total: allArticles.length, byCategory },
-      });
-    } catch (error) {
-      console.error("Error loading articles:", error);
-      return ctx.render({
-        articles: [],
-        categories: CATEGORIES,
-        stats: { total: 0, byCategory: {} },
-      });
-    }
-  },
+    });
+  }
 };
 
 export default function Home({ data }: PageProps<Data>) {
-  const { articles, categories, stats } = data;
+  const { articles, stats } = data;
+
+  const getCategoryIcon = (slug: string): string => {
+    const icons: Record<string, string> = {
+      technology: "💻",
+      world: "🌍",
+      business: "💼",
+      science: "🔬",
+      sports: "⚽",
+      general: "📰"
+    };
+    return icons[slug] || "📰";
+  };
+
+  const getCategoryName = (slug: string): string => {
+    const cat = CATEGORIES.find(c => c.slug === slug);
+    return cat?.name || "综合";
+  };
+
+  const formatTime = (date: Date): string => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(date).getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return "刚刚";
+    if (hours < 24) return `${hours}小时前`;
+    return `${Math.floor(hours / 24)}天前`;
+  };
 
   return (
-    <div>
+    <div class="page">
       {/* 导航栏 */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-title">新闻中心</div>
-          <ul className="nav-links">
-            <li>
-              <a href="/" className="nav-link">全部</a>
-            </li>
-            <li>
-              <a href="#tech" className="nav-link">科技</a>
-            </li>
-            <li>
-              <a href="#world" className="nav-link">国际</a>
-            </li>
-            <li>
-              <a href="#business" className="nav-link">商业</a>
-            </li>
+      <nav class="nav">
+        <div class="nav-inner">
+          <a href="/" class="nav-brand">News</a>
+          <ul class="nav-menu">
+            <li><a href="/" class="nav-link">首页</a></li>
+            <li><a href="#tech" class="nav-link">科技</a></li>
+            <li><a href="#world" class="nav-link">国际</a></li>
+            <li><a href="#business" class="nav-link">商业</a></li>
           </ul>
         </div>
       </nav>
 
-      {/* Hero 区域 */}
-      <div className="hero">
-        <h1 className="hero-title">新闻</h1>
-        <p className="hero-subtitle">今日 {stats.total} 篇精选文章</p>
-      </div>
+      {/* Hero区域 */}
+      <section class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>✨</span>
+            <span>实时更新</span>
+          </div>
+          <h1 class="hero-title">新闻中心</h1>
+          <p class="hero-subtitle">汇聚全球资讯，洞察世界脉搏</p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <div class="stat-number">{stats.total}</div>
+              <div class="stat-label">今日文章</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{CATEGORIES.length}</div>
+              <div class="stat-label">分类频道</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">24/7</div>
+              <div class="stat-label">实时更新</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 分类标签 */}
-      <div className="tabs">
-        <div className="tabs-inner">
-          <a href="/" className="tab active">
-            <span>全部</span>
-          </a>
-          {categories.filter((c) => c.slug !== "general").map((cat) => (
-            <a
-              key={cat.slug}
-              href={`/category/${cat.slug}`}
-              className="tab"
-            >
-              <span>{cat.name}</span>
-              <span className="tab-count">
-                {stats.byCategory[cat.slug] || 0}
-              </span>
+      <section class="tabs-section">
+        <div class="tabs-container">
+          <div class="tabs">
+            <a href="/" class="tab active">
+              <span>全部</span>
+              <span class="tab-count">{stats.total}</span>
             </a>
-          ))}
+            {CATEGORIES.filter(c => c.slug !== "general").map(cat => (
+              <a href={`/category/${cat.slug}`} class="tab" key={cat.slug}>
+                <span>{cat.name}</span>
+                <span class="tab-count">{stats.byCategory[cat.slug] || 0}</span>
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* 内容区 */}
-      <div className="content">
-        <div className="content-inner">
-          {articles.length === 0
-            ? (
-              <div className="empty">
-                <div className="empty-icon">📰</div>
-                <h2 className="empty-title">正在加载</h2>
-                <p className="empty-text">
-                  首次启动需要抓取新闻源，请稍候片刻
-                </p>
-              </div>
-            )
-            : (
-              <>
-                <h2 className="section-title">最新资讯</h2>
-                <div className="grid">
-                  {articles.map((article, index) => (
-                    <a
-                      key={article.id}
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener"
-                      className="card fade-in"
-                      style={{ animationDelay: `${index * 0.03}s` }}
-                    >
-                      <div className="card-icon">
-                        {getCategoryIcon(article.category)}
-                      </div>
-                      <div className="card-category">
-                        {getCategoryName(article.category)}
-                      </div>
-                      <h3 className="card-title">
-                        {truncate(article.title, 60)}
-                      </h3>
-                      <p className="card-desc">
-                        {truncate(article.description, 80)}
-                      </p>
-                      <div className="card-meta">
-                        <span>{article.source.name}</span>
-                        <div className="card-meta-dot"></div>
-                        <span>{formatRelativeTime(article.publishedAt)}</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </>
-            )}
+      {/* 内容区域 */}
+      <section class="content">
+        <div class="content-inner">
+          <div class="section-header">
+            <h2 class="section-title">最新资讯</h2>
+            <p class="section-subtitle">精选全球热门新闻，实时更新</p>
+          </div>
+
+          {articles.length === 0 ? (
+            <div class="empty-state">
+              <div class="empty-icon">📰</div>
+              <h3 class="empty-title">暂无文章</h3>
+              <p class="empty-text">正在抓取最新资讯，请稍后再试</p>
+            </div>
+          ) : (
+            <div class="grid">
+              {articles.map((article, index) => (
+                <a
+                  href={article.link}
+                  class="card"
+                  key={article.id}
+                  style={{ "--index": index } as React.CSSProperties}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div class="card-header">
+                    <div class="card-icon">{getCategoryIcon(article.category)}</div>
+                    <span class="card-category">{getCategoryName(article.category)}</span>
+                  </div>
+                  <h3 class="card-title">{article.title}</h3>
+                  <p class="card-desc">{article.description}</p>
+                  <div class="card-footer">
+                    <div class="card-meta">
+                      <span>{article.source.name}</span>
+                      <span class="card-meta-dot"></span>
+                      <span>{formatTime(article.publishedAt)}</span>
+                    </div>
+                    <div class="card-arrow">→</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <p className="footer-text">使用 Fresh 和 Deno 构建</p>
-          <p className="footer-text">© 2026 新闻聚合平台</p>
+      <footer class="footer">
+        <div class="footer-inner">
+          <p class="footer-text">© 2026 News Center. All rights reserved.</p>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">关于我们</a></li>
+            <li><a href="#" class="footer-link">隐私政策</a></li>
+            <li><a href="#" class="footer-link">联系方式</a></li>
+          </ul>
         </div>
       </footer>
     </div>
   );
-}
-
-// 辅助函数
-function getCategoryName(slug: string): string {
-  const cat = CATEGORIES.find((c) => c.slug === slug);
-  return cat ? cat.name : "综合";
-}
-
-function getCategoryIcon(slug: string): string {
-  const iconMap: Record<string, string> = {
-    technology: "💻",
-    world: "🌍",
-    business: "💼",
-    science: "🔬",
-    sports: "⚽",
-    general: "📰",
-  };
-  return iconMap[slug] || "📰";
-}
-
-function formatRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - new Date(date).getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return "刚刚";
-  if (diffMins < 60) return `${diffMins}分钟前`;
-  if (diffHours < 24) return `${diffHours}小时前`;
-  if (diffDays < 7) return `${diffDays}天前`;
-  return new Date(date).toLocaleDateString("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-  });
-}
-
-function truncate(text: string, length: number): string {
-  if (text.length <= length) return text;
-  return text.substring(0, length) + "...";
 }
