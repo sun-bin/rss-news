@@ -34,61 +34,61 @@ function cleanLink(link: string): string {
   return cleaned;
 }
 
-// 模拟数据
+// 模拟数据 - 使用真实存在的链接
 const mockArticles: Article[] = [
   {
     id: "1",
     title: "Apple 发布全新 M4 芯片，性能提升显著",
     description: "苹果公司今日发布了全新的 M4 芯片，采用先进的 3nm 工艺，在性能和能效方面都有显著提升...",
-    link: "https://techcrunch.com/apple-m4-chip",
+    link: "https://www.apple.com/newsroom/",
     publishedAt: new Date(),
     category: "technology",
-    source: { name: "TechCrunch", url: "https://techcrunch.com" }
+    source: { name: "Apple Newsroom", url: "https://www.apple.com/newsroom/" }
   },
   {
     id: "2",
     title: "全球气候变化峰会达成重要共识",
     description: "在最新的气候变化峰会上，各国代表就减排目标达成重要共识，承诺在2030年前实现碳排放大幅减少...",
-    link: "https://reuters.com/climate-summit",
+    link: "https://www.un.org/climatechange",
     publishedAt: new Date(Date.now() - 3600000),
     category: "world",
-    source: { name: "Reuters", url: "https://reuters.com" }
+    source: { name: "UN Climate Change", url: "https://www.un.org/climatechange" }
   },
   {
     id: "3",
     title: "全球股市创年度新高，投资者信心增强",
     description: "受利好消息影响，全球主要股市今日集体上涨，创下年度新高，市场投资者信心明显增强...",
-    link: "https://bloomberg.com/markets-record",
+    link: "https://www.bloomberg.com/markets",
     publishedAt: new Date(Date.now() - 7200000),
     category: "business",
-    source: { name: "Bloomberg", url: "https://bloomberg.com" }
+    source: { name: "Bloomberg Markets", url: "https://www.bloomberg.com/markets" }
   },
   {
     id: "4",
     title: "科学家发现新型抗癌药物，临床试验效果显著",
     description: "一项最新的医学研究表明，新型抗癌药物在临床试验中展现出显著的治疗效果...",
-    link: "https://nature.com/cancer-drug",
+    link: "https://www.nature.com/subjects/medicine",
     publishedAt: new Date(Date.now() - 10800000),
     category: "science",
-    source: { name: "Nature", url: "https://nature.com" }
+    source: { name: "Nature Medicine", url: "https://www.nature.com/subjects/medicine" }
   },
   {
     id: "5",
     title: "世界杯决赛精彩回顾：冠军诞生时刻",
     description: "昨晚的世界杯决赛精彩纷呈，双方球队展开激烈角逐，最终冠军在点球大战中诞生...",
-    link: "https://espn.com/world-cup-final",
+    link: "https://www.fifa.com/worldcup",
     publishedAt: new Date(Date.now() - 14400000),
     category: "sports",
-    source: { name: "ESPN", url: "https://espn.com" }
+    source: { name: "FIFA World Cup", url: "https://www.fifa.com/worldcup" }
   },
   {
     id: "6",
     title: "人工智能在医疗领域的最新突破",
     description: "AI技术在医疗诊断领域取得重大突破，新算法能够更准确地识别早期疾病迹象...",
-    link: "https://theverge.com/ai-medical",
+    link: "https://www.who.int/health-topics/digital-health",
     publishedAt: new Date(Date.now() - 18000000),
     category: "technology",
-    source: { name: "The Verge", url: "https://theverge.com" }
+    source: { name: "WHO Digital Health", url: "https://www.who.int/health-topics/digital-health" }
   }
 ];
 
