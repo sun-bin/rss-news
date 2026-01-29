@@ -95,7 +95,7 @@ export default function Home({ data }: PageProps<Data>) {
       {/* 导航栏 */}
       <nav style="background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); position: fixed; top: 0; left: 0; right: 0; z-index: 9999; border-bottom: 1px solid rgba(0, 0, 0, 0.08);">
         <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between;">
-          <a href="/" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 21px; font-weight: 600; color: #1d1d1f; text-decoration: none;">News</a>
+          <a href="/" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 21px; font-weight: 600; color: #1d1d1f; text-decoration: none;">洞察</a>
           <ul style="display: flex; gap: 32px; list-style: none; margin: 0; padding: 0;">
             <li><a href="/" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">首页</a></li>
             <li><a href="#tech" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">科技</a></li>
@@ -108,7 +108,7 @@ export default function Home({ data }: PageProps<Data>) {
       {/* Hero区域 */}
       <section style="background: #ffffff; padding: 120px 24px 60px; text-align: center;">
         <div style="max-width: 800px; margin: 0 auto;">
-          <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: clamp(40px, 6vw, 64px); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; color: #1d1d1f;">新闻中心</h1>
+          <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: clamp(40px, 6vw, 64px); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; color: #1d1d1f;">新闻速递</h1>
           <p style="font-size: 21px; color: #6e6e73; margin-bottom: 40px;">汇聚全球资讯，洞察世界脉搏</p>
           <div style="display: flex; justify-content: center; gap: 60px;">
             <div style="text-align: center;">
