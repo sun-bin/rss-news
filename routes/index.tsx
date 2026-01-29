@@ -144,13 +144,8 @@ export default function Home({ data }: PageProps<Data>) {
       </section>
 
       {/* 内容区域 */}
-      <section style="background: #f5f5f7; padding: 60px 24px 80px;">
+      <section style="background: #f5f5f7; padding: 40px 24px 80px;">
         <div style="max-width: 1200px; margin: 0 auto;">
-          <div style="text-align: center; margin-bottom: 48px;">
-            <h2 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 32px; font-weight: 600; color: #1d1d1f; margin-bottom: 8px;">最新资讯</h2>
-            <p style="font-size: 17px; color: #6e6e73;">精选全球热门新闻，实时更新</p>
-          </div>
-
           {error ? (
             <div style="text-align: center; padding: 80px 20px; background: #ffffff; border-radius: 16px;">
               <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
