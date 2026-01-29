@@ -10,61 +10,86 @@ interface Data {
   };
 }
 
+// 清理RSS链接中的CDATA和其他格式
+function cleanLink(link: string): string {
+  if (!link) return "#";
+  
+  // 移除 CDATA 标记
+  let cleaned = link.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "");
+  
+  // 移除空白字符
+  cleaned = cleaned.trim();
+  
+  // 确保链接以 http:// 或 https:// 开头
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+    // 如果链接不以 http 开头，可能是相对路径或无效链接
+    if (cleaned.startsWith("//")) {
+      cleaned = "https:" + cleaned;
+    } else if (cleaned.startsWith("/")) {
+      cleaned = "#"; // 相对路径，暂时用 # 代替
+    } else if (!cleaned || cleaned === "null" || cleaned === "undefined") {
+      cleaned = "#";
+    }
+  }
+  
+  return cleaned;
+}
+
 // 模拟数据 - 实际项目中应该从缓存获取
 const mockArticles: Article[] = [
   {
     id: "1",
     title: "Apple 发布全新 M4 芯片，性能提升显著",
     description: "苹果公司今日发布了全新的 M4 芯片，采用先进的 3nm 工艺，在性能和能效方面都有显著提升...",
-    link: "#",
+    link: "https://techcrunch.com/apple-m4-chip",
     publishedAt: new Date(),
     category: "technology",
-    source: { name: "TechCrunch", url: "#" }
+    source: { name: "TechCrunch", url: "https://techcrunch.com" }
   },
   {
     id: "2",
     title: "全球气候变化峰会达成重要共识",
     description: "在最新的气候变化峰会上，各国代表就减排目标达成重要共识，承诺在2030年前实现碳排放大幅减少...",
-    link: "#",
+    link: "https://reuters.com/climate-summit",
     publishedAt: new Date(Date.now() - 3600000),
     category: "world",
-    source: { name: "Reuters", url: "#" }
+    source: { name: "Reuters", url: "https://reuters.com" }
   },
   {
     id: "3",
     title: "全球股市创年度新高，投资者信心增强",
     description: "受利好消息影响，全球主要股市今日集体上涨，创下年度新高，市场投资者信心明显增强...",
-    link: "#",
+    link: "https://bloomberg.com/markets-record",
     publishedAt: new Date(Date.now() - 7200000),
     category: "business",
-    source: { name: "Bloomberg", url: "#" }
+    source: { name: "Bloomberg", url: "https://bloomberg.com" }
   },
   {
     id: "4",
     title: "科学家发现新型抗癌药物，临床试验效果显著",
     description: "一项最新的医学研究表明，新型抗癌药物在临床试验中展现出显著的治疗效果...",
-    link: "#",
+    link: "https://nature.com/cancer-drug",
     publishedAt: new Date(Date.now() - 10800000),
     category: "science",
-    source: { name: "Nature", url: "#" }
+    source: { name: "Nature", url: "https://nature.com" }
   },
   {
     id: "5",
     title: "世界杯决赛精彩回顾：冠军诞生时刻",
     description: "昨晚的世界杯决赛精彩纷呈，双方球队展开激烈角逐，最终冠军在点球大战中诞生...",
-    link: "#",
+    link: "https://espn.com/world-cup-final",
     publishedAt: new Date(Date.now() - 14400000),
     category: "sports",
-    source: { name: "ESPN", url: "#" }
+    source: { name: "ESPN", url: "https://espn.com" }
   },
   {
     id: "6",
     title: "人工智能在医疗领域的最新突破",
     description: "AI技术在医疗诊断领域取得重大突破，新算法能够更准确地识别早期疾病迹象...",
-    link: "#",
+    link: "https://theverge.com/ai-medical",
     publishedAt: new Date(Date.now() - 18000000),
     category: "technology",
-    source: { name: "The Verge", url: "#" }
+    source: { name: "The Verge", url: "https://theverge.com" }
   }
 ];
 
@@ -88,18 +113,6 @@ export const handler: Handlers<Data> = {
 
 export default function Home({ data }: PageProps<Data>) {
   const { articles, stats } = data;
-
-  const getCategoryIcon = (slug: string): string => {
-    const icons: Record<string, string> = {
-      technology: "💻",
-      world: "🌍",
-      business: "💼",
-      science: "🔬",
-      sports: "⚽",
-      general: "📰"
-    };
-    return icons[slug] || "📰";
-  };
 
   const getCategoryName = (slug: string): string => {
     const cat = CATEGORIES.find(c => c.slug === slug);
@@ -133,10 +146,6 @@ export default function Home({ data }: PageProps<Data>) {
       {/* Hero区域 */}
       <section class="hero">
         <div class="hero-content">
-          <div class="hero-badge">
-            <span>✨</span>
-            <span>实时更新</span>
-          </div>
           <h1 class="hero-title">新闻中心</h1>
           <p class="hero-subtitle">汇聚全球资讯，洞察世界脉搏</p>
           <div class="hero-stats">
@@ -192,17 +201,13 @@ export default function Home({ data }: PageProps<Data>) {
             <div class="grid">
               {articles.map((article, index) => (
                 <a
-                  href={article.link}
+                  href={cleanLink(article.link)}
                   class="card"
                   key={article.id}
-                  style={{ "--index": index } as React.CSSProperties}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <div class="card-header">
-                    <div class="card-icon">{getCategoryIcon(article.category)}</div>
-                    <span class="card-category">{getCategoryName(article.category)}</span>
-                  </div>
+                  <span class="card-category">{getCategoryName(article.category)}</span>
                   <h3 class="card-title">{article.title}</h3>
                   <p class="card-desc">{article.description}</p>
                   <div class="card-footer">
