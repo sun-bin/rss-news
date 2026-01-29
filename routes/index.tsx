@@ -1,6 +1,8 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import type { Article } from "../types/article.ts";
 import { CATEGORIES } from "../config/categories.ts";
+import { RSS_FEEDS } from "../config/feeds.ts";
+import { fetchAllRSS } from "../lib/rss/fetcher.ts";
 
 interface Data {
   articles: Article[];
@@ -8,6 +10,7 @@ interface Data {
     total: number;
     byCategory: Record<string, number>;
   };
+  error?: string;
 }
 
 // 清理RSS链接中的CDATA和其他格式
@@ -34,83 +37,38 @@ function cleanLink(link: string): string {
   return cleaned;
 }
 
-// 模拟数据 - 使用真实存在的链接
-const mockArticles: Article[] = [
-  {
-    id: "1",
-    title: "Apple 发布全新 M4 芯片，性能提升显著",
-    description: "苹果公司今日发布了全新的 M4 芯片，采用先进的 3nm 工艺，在性能和能效方面都有显著提升...",
-    link: "https://www.apple.com/newsroom/",
-    publishedAt: new Date(),
-    category: "technology",
-    source: { name: "Apple Newsroom", url: "https://www.apple.com/newsroom/" }
-  },
-  {
-    id: "2",
-    title: "全球气候变化峰会达成重要共识",
-    description: "在最新的气候变化峰会上，各国代表就减排目标达成重要共识，承诺在2030年前实现碳排放大幅减少...",
-    link: "https://www.un.org/climatechange",
-    publishedAt: new Date(Date.now() - 3600000),
-    category: "world",
-    source: { name: "UN Climate Change", url: "https://www.un.org/climatechange" }
-  },
-  {
-    id: "3",
-    title: "全球股市创年度新高，投资者信心增强",
-    description: "受利好消息影响，全球主要股市今日集体上涨，创下年度新高，市场投资者信心明显增强...",
-    link: "https://www.bloomberg.com/markets",
-    publishedAt: new Date(Date.now() - 7200000),
-    category: "business",
-    source: { name: "Bloomberg Markets", url: "https://www.bloomberg.com/markets" }
-  },
-  {
-    id: "4",
-    title: "科学家发现新型抗癌药物，临床试验效果显著",
-    description: "一项最新的医学研究表明，新型抗癌药物在临床试验中展现出显著的治疗效果...",
-    link: "https://www.nature.com/subjects/medicine",
-    publishedAt: new Date(Date.now() - 10800000),
-    category: "science",
-    source: { name: "Nature Medicine", url: "https://www.nature.com/subjects/medicine" }
-  },
-  {
-    id: "5",
-    title: "世界杯决赛精彩回顾：冠军诞生时刻",
-    description: "昨晚的世界杯决赛精彩纷呈，双方球队展开激烈角逐，最终冠军在点球大战中诞生...",
-    link: "https://www.fifa.com/worldcup",
-    publishedAt: new Date(Date.now() - 14400000),
-    category: "sports",
-    source: { name: "FIFA World Cup", url: "https://www.fifa.com/worldcup" }
-  },
-  {
-    id: "6",
-    title: "人工智能在医疗领域的最新突破",
-    description: "AI技术在医疗诊断领域取得重大突破，新算法能够更准确地识别早期疾病迹象...",
-    link: "https://www.who.int/health-topics/digital-health",
-    publishedAt: new Date(Date.now() - 18000000),
-    category: "technology",
-    source: { name: "WHO Digital Health", url: "https://www.who.int/health-topics/digital-health" }
-  }
-];
-
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
-    const byCategory: Record<string, number> = {};
-    mockArticles.forEach(article => {
-      byCategory[article.category] = (byCategory[article.category] || 0) + 1;
-    });
+    try {
+      // 抓取所有 RSS 源
+      const articles = await fetchAllRSS(RSS_FEEDS);
+      
+      // 统计各分类文章数量
+      const byCategory: Record<string, number> = {};
+      articles.forEach(article => {
+        byCategory[article.category] = (byCategory[article.category] || 0) + 1;
+      });
 
-    return ctx.render({
-      articles: mockArticles,
-      stats: {
-        total: mockArticles.length,
-        byCategory
-      }
-    });
+      return ctx.render({
+        articles,
+        stats: {
+          total: articles.length,
+          byCategory
+        }
+      });
+    } catch (error) {
+      console.error("抓取 RSS 失败:", error);
+      return ctx.render({
+        articles: [],
+        stats: { total: 0, byCategory: {} },
+        error: "抓取新闻失败，请稍后重试"
+      });
+    }
   }
 };
 
 export default function Home({ data }: PageProps<Data>) {
-  const { articles, stats } = data;
+  const { articles, stats, error } = data;
 
   const getCategoryName = (slug: string): string => {
     const cat = CATEGORIES.find(c => c.slug === slug);
@@ -193,8 +151,14 @@ export default function Home({ data }: PageProps<Data>) {
             <p style="font-size: 17px; color: #6e6e73;">精选全球热门新闻，实时更新</p>
           </div>
 
-          {articles.length === 0 ? (
-            <div style="text-align: center; padding: 80px 20px;">
+          {error ? (
+            <div style="text-align: center; padding: 80px 20px; background: #ffffff; border-radius: 16px;">
+              <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+              <h3 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 24px; font-weight: 600; color: #1d1d1f; margin-bottom: 8px;">出错了</h3>
+              <p style="font-size: 17px; color: #6e6e73;">{error}</p>
+            </div>
+          ) : articles.length === 0 ? (
+            <div style="text-align: center; padding: 80px 20px; background: #ffffff; border-radius: 16px;">
               <div style="font-size: 64px; margin-bottom: 24px;">📰</div>
               <h3 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 24px; font-weight: 600; color: #1d1d1f; margin-bottom: 8px;">暂无文章</h3>
               <p style="font-size: 17px; color: #6e6e73;">正在抓取最新资讯，请稍后再试</p>
