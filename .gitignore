@@ -2,8 +2,8 @@
 .deno/
 
 # Environment
-.env
-.env.local
+# .env 需要提交到仓库供Deno Deploy使用
+# .env.local
 
 # IDE
 .vscode/
