@@ -102,7 +102,119 @@ export default function Home({ data }: PageProps<Data>) {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
         }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .update-toast {
+          animation: slideIn 0.3s ease-out;
+        }
       `}</style>
+      
+      {/* 实时更新脚本 */}
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            let reconnectAttempts = 0;
+            const maxReconnectAttempts = 5;
+            let eventSource = null;
+            
+            function connectSSE() {
+              if (eventSource) {
+                eventSource.close();
+              }
+              
+              eventSource = new EventSource('/api/sse');
+              
+              eventSource.onopen = function() {
+                console.log('SSE连接已建立');
+                reconnectAttempts = 0;
+              };
+              
+              eventSource.onmessage = function(event) {
+                try {
+                  const data = JSON.parse(event.data);
+                  console.log('收到更新:', data);
+                  
+                  if (data.type === 'update') {
+                    showUpdateNotification(data.stats);
+                  }
+                } catch (e) {
+                  // 忽略心跳消息
+                }
+              };
+              
+              eventSource.onerror = function(error) {
+                console.error('SSE连接错误:', error);
+                eventSource.close();
+                
+                // 重连机制
+                if (reconnectAttempts < maxReconnectAttempts) {
+                  reconnectAttempts++;
+                  const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                  console.log(\`将在 \${delay}ms 后重连 (尝试 \${reconnectAttempts}/\${maxReconnectAttempts})\`);
+                  setTimeout(connectSSE, delay);
+                }
+              };
+            }
+            
+            function showUpdateNotification(stats) {
+              // 移除旧的通知
+              const oldNotification = document.getElementById('update-notification');
+              if (oldNotification) {
+                oldNotification.remove();
+              }
+              
+              // 创建新通知
+              const notification = document.createElement('div');
+              notification.id = 'update-notification';
+              notification.className = 'update-toast';
+              notification.style.cssText = 
+                'position: fixed; top: 80px; right: 24px; z-index: 10000; ' +
+                'background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); ' +
+                'color: white; padding: 16px 24px; border-radius: 12px; ' +
+                'box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3); ' +
+                'cursor: pointer; font-family: system-ui, sans-serif;';
+              
+              notification.innerHTML = 
+                '<div style="font-weight: 600; margin-bottom: 4px;">🔄 发现新内容</div>' +
+                '<div style="font-size: 13px; opacity: 0.9;">共 ' + (stats?.total || 'N') + ' 篇文章</div>' +
+                '<div style="font-size: 12px; opacity: 0.7; margin-top: 8px;">点击刷新页面</div>';
+              
+              notification.onclick = function() {
+                window.location.reload();
+              };
+              
+              document.body.appendChild(notification);
+              
+              // 5秒后自动消失
+              setTimeout(function() {
+                if (notification.parentNode) {
+                  notification.style.opacity = '0';
+                  notification.style.transform = 'translateY(-10px)';
+                  notification.style.transition = 'all 0.3s ease-out';
+                  setTimeout(function() {
+                    notification.remove();
+                  }, 300);
+                }
+              }, 5000);
+            }
+            
+            // 启动连接
+            connectSSE();
+            
+            // 页面可见性变化时处理
+            document.addEventListener('visibilitychange', function() {
+              if (document.visibilityState === 'visible') {
+                console.log('页面可见，检查连接状态');
+                if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+                  connectSSE();
+                }
+              }
+            });
+          })();
+        `
+      }} />
       
       {/* 科技感头部 */}
       <header style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); position: relative; overflow: hidden;">
