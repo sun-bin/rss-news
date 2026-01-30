@@ -23,7 +23,7 @@ let lastFetchTime = 0;
 let isFetching = false;
 let fetchPromise: Promise<CacheData> | null = null;
 
-// 获取缓存的聚合数据
+// 获取缓存的聚合数据（如果没有缓存会立即获取）
 export async function getCachedArticles(): Promise<CacheData> {
   const now = Date.now();
   
@@ -39,7 +39,8 @@ export async function getCachedArticles(): Promise<CacheData> {
     return fetchPromise;
   }
   
-  // 开始新的获取
+  // 立即开始新的获取（首次访问或缓存过期）
+  console.log("缓存不存在或已过期，立即获取数据...");
   isFetching = true;
   fetchPromise = fetchAndCacheArticles();
   
@@ -58,7 +59,7 @@ async function fetchAndCacheArticles(): Promise<CacheData> {
   const startTime = Date.now();
   
   try {
-    // 并行获取 RSS 和飞书数据
+    // 并行获取 RSS 和飞书数据，但分别处理超时
     const [rssArticles, feishuArticles] = await Promise.all([
       fetchRSSWithTimeout(),
       fetchFeishuWithTimeout(),
@@ -89,32 +90,40 @@ async function fetchAndCacheArticles(): Promise<CacheData> {
     return result;
   } catch (error) {
     console.error("获取数据失败:", error);
-    // 如果有旧缓存，返回旧缓存
+    
+    // 如果有旧缓存，返回旧缓存（即使过期也比空的好）
     if (globalCache) {
       console.log("返回过期缓存数据");
       return globalCache;
     }
-    // 否则返回空数据
-    return {
+    
+    // 如果连过期缓存都没有，返回空数据但标记为已获取
+    console.log("无缓存可用，返回空数据");
+    const emptyResult: CacheData = {
       articles: [],
       sources: { rss: 0, feishu: 0 },
       timestamp: Date.now(),
     };
+    globalCache = emptyResult;
+    lastFetchTime = Date.now();
+    return emptyResult;
   }
 }
 
-// 带超时的 RSS 获取
+// 带超时的 RSS 获取 - 使用更短的超时时间
 async function fetchRSSWithTimeout(): Promise<Article[]> {
   try {
-    // 设置 8 秒超时
+    // 设置 15 秒超时（给 RSS 更多时间）
     const timeoutPromise = new Promise<Article[]>((_, reject) => {
-      setTimeout(() => reject(new Error("RSS 获取超时")), 8000);
+      setTimeout(() => reject(new Error("RSS 获取超时")), 15000);
     });
     
-    return await Promise.race([
+    const articles = await Promise.race([
       fetchAllRSS(RSS_FEEDS),
       timeoutPromise,
     ]);
+    
+    return articles;
   } catch (error) {
     console.error("RSS 获取失败或超时:", error);
     return [];

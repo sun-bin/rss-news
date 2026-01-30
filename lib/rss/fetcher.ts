@@ -69,26 +69,32 @@ function cleanText(text: string): string {
 // 抓取单个 RSS 源
 async function fetchRSS(source: RSSSource): Promise<Article[]> {
   try {
-    console.log(`正在抓取: ${source.name} (${source.url})`);
+    console.log(`正在抓取: ${source.name}`);
     
-    const response = await fetch(source.url, {
+    // 使用 Promise.race 实现超时
+    const fetchPromise = fetch(source.url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader)',
       },
-      signal: AbortSignal.timeout(10000), // 10秒超时
     });
     
+    const timeoutPromise = new Promise<Response>((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout')), 8000);
+    });
+    
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}`);
     }
     
     const xml = await response.text();
     const articles = parseRSS(xml, source);
     
-    console.log(`成功抓取 ${source.name}: ${articles.length} 篇文章`);
+    console.log(`✓ ${source.name}: ${articles.length} 篇`);
     return articles;
   } catch (error) {
-    console.error(`抓取 ${source.name} 失败:`, error);
+    console.error(`✗ ${source.name}:`, (error as Error).message);
     return [];
   }
 }
@@ -96,24 +102,34 @@ async function fetchRSS(source: RSSSource): Promise<Article[]> {
 // 抓取所有 RSS 源
 export async function fetchAllRSS(sources: RSSSource[]): Promise<Article[]> {
   console.log(`开始抓取 ${sources.length} 个 RSS 源...`);
+  const startTime = Date.now();
   
-  // 并行抓取所有源
-  const results = await Promise.allSettled(
-    sources.map(source => fetchRSS(source))
-  );
-  
-  // 合并所有成功抓取的文章
+  // 并行抓取所有源，但限制并发数
+  const batchSize = 5; // 每批5个
   const allArticles: Article[] = [];
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      allArticles.push(...result.value);
+  
+  for (let i = 0; i < sources.length; i += batchSize) {
+    const batch = sources.slice(i, i + batchSize);
+    const results = await Promise.all(
+      batch.map(source => fetchRSS(source))
+    );
+    
+    for (const articles of results) {
+      allArticles.push(...articles);
+    }
+    
+    // 批次间小延迟，避免并发过大
+    if (i + batchSize < sources.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
   
   // 按发布时间排序（最新的在前）
   allArticles.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
   
-  console.log(`总共抓取 ${allArticles.length} 篇文章`);
+  const duration = Date.now() - startTime;
+  console.log(`抓取完成: ${allArticles.length} 篇文章, 耗时 ${duration}ms`);
+  
   return allArticles;
 }
 
