@@ -2,7 +2,6 @@
 import type { Article } from "../../types/article.ts";
 import { fetchAllRSS } from "../rss/fetcher.ts";
 import { RSS_FEEDS } from "../../config/feeds.ts";
-import { fetchFeishuArticlesWithToken } from "../feishu/client.ts";
 
 // 全局缓存
 interface CacheData {
@@ -59,11 +58,15 @@ async function fetchAndCacheArticles(): Promise<CacheData> {
   const startTime = Date.now();
   
   try {
-    // 并行获取 RSS 和飞书数据，但分别处理超时
-    const [rssArticles, feishuArticles] = await Promise.all([
-      fetchRSSWithTimeout(),
-      fetchFeishuWithTimeout(),
-    ]);
+    // 先获取 RSS 数据
+    console.log("开始获取 RSS 数据...");
+    const rssArticles = await fetchRSSWithTimeout();
+    console.log(`RSS 获取完成: ${rssArticles.length} 篇文章`);
+    
+    // 再获取飞书数据
+    console.log("开始获取飞书数据...");
+    const feishuArticles = await fetchFeishuWithTimeout();
+    console.log(`飞书获取完成: ${feishuArticles.length} 篇文章`);
     
     // 合并文章列表
     const allArticles = [...rssArticles, ...feishuArticles];
@@ -85,7 +88,7 @@ async function fetchAndCacheArticles(): Promise<CacheData> {
     lastFetchTime = Date.now();
     
     const duration = Date.now() - startTime;
-    console.log(`数据获取完成: ${duration}ms, RSS ${rssArticles.length} 条, 飞书 ${feishuArticles.length} 条`);
+    console.log(`数据获取完成: ${duration}ms, 总计 ${allArticles.length} 条`);
     
     return result;
   } catch (error) {
@@ -110,12 +113,14 @@ async function fetchAndCacheArticles(): Promise<CacheData> {
   }
 }
 
-// 带超时的 RSS 获取 - 使用更短的超时时间
+// 带超时的 RSS 获取
 async function fetchRSSWithTimeout(): Promise<Article[]> {
   try {
-    // 设置 15 秒超时（给 RSS 更多时间）
+    console.log(`准备抓取 ${RSS_FEEDS.length} 个 RSS 源...`);
+    
+    // 设置 30 秒超时（给 RSS 足够时间）
     const timeoutPromise = new Promise<Article[]>((_, reject) => {
-      setTimeout(() => reject(new Error("RSS 获取超时")), 15000);
+      setTimeout(() => reject(new Error("RSS 获取超时")), 30000);
     });
     
     const articles = await Promise.race([
@@ -133,19 +138,15 @@ async function fetchRSSWithTimeout(): Promise<Article[]> {
 // 带超时的飞书数据获取
 async function fetchFeishuWithTimeout(): Promise<Article[]> {
   try {
-    const appToken = Deno.env.get("FEISHU_APP_TOKEN");
-    if (!appToken) {
-      return [];
-    }
+    // 导入新的飞书客户端（使用自动刷新）
+    const { fetchFeishuArticles } = await import("../feishu/client.ts");
     
     const timeoutPromise = new Promise<Article[]>((_, reject) => {
-      setTimeout(() => reject(new Error("飞书获取超时")), 5000);
+      setTimeout(() => reject(new Error("飞书获取超时")), 10000);
     });
     
-    const personalToken = Deno.env.get("FEISHU_PERSONAL_TOKEN");
-    
     return await Promise.race([
-      fetchFeishuArticlesWithToken(appToken, personalToken),
+      fetchFeishuArticles(),
       timeoutPromise,
     ]);
   } catch (error) {
