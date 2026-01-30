@@ -1,14 +1,17 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import type { Article } from "../types/article.ts";
 import { CATEGORIES } from "../config/categories.ts";
-import { RSS_FEEDS } from "../config/feeds.ts";
-import { fetchAllRSS } from "../lib/rss/fetcher.ts";
+import { aggregateArticles } from "../lib/data/aggregator.ts";
 
 interface Data {
   articles: Article[];
   stats: {
     total: number;
     byCategory: Record<string, number>;
+    sources: {
+      rss: number;
+      feishu: number;
+    };
   };
   error?: string;
 }
@@ -40,8 +43,8 @@ function cleanLink(link: string): string {
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
     try {
-      // 抓取所有 RSS 源
-      const articles = await fetchAllRSS(RSS_FEEDS);
+      // 聚合 RSS 和飞书表格数据
+      const { articles, sources } = await aggregateArticles();
       
       // 统计各分类文章数量
       const byCategory: Record<string, number> = {};
@@ -53,14 +56,19 @@ export const handler: Handlers<Data> = {
         articles,
         stats: {
           total: articles.length,
-          byCategory
+          byCategory,
+          sources
         }
       });
     } catch (error) {
-      console.error("抓取 RSS 失败:", error);
+      console.error("抓取新闻失败:", error);
       return ctx.render({
         articles: [],
-        stats: { total: 0, byCategory: {} },
+        stats: { 
+          total: 0, 
+          byCategory: {},
+          sources: { rss: 0, feishu: 0 }
+        },
         error: "抓取新闻失败，请稍后重试"
       });
     }
