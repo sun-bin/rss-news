@@ -90,42 +90,69 @@ export default function Home({ data }: PageProps<Data>) {
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         html { scroll-behavior: smooth; }
         body { margin: 0; padding: 0; }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
       `}</style>
       
-      {/* 导航栏 */}
-      <nav style="background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px); position: fixed; top: 0; left: 0; right: 0; z-index: 9999; border-bottom: 1px solid rgba(0, 0, 0, 0.08);">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between;">
-          <a href="/" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 21px; font-weight: 600; color: #1d1d1f; text-decoration: none;">洞察</a>
-          <ul style="display: flex; gap: 32px; list-style: none; margin: 0; padding: 0;">
-            <li><a href="/" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">首页</a></li>
-            <li><a href="#tech" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">科技</a></li>
-            <li><a href="#world" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">国际</a></li>
-            <li><a href="#business" style="font-size: 14px; color: #1d1d1f; text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">商业</a></li>
-          </ul>
-        </div>
-      </nav>
+      {/* 科技感头部 */}
+      <header style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); position: relative; overflow: hidden;">
+        {/* 背景网格效果 */}
+        <div style="position: absolute; inset: 0; background-image: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.15) 1px, transparent 0); background-size: 40px 40px; opacity: 0.5;"></div>
+        {/* 光晕效果 */}
+        <div style="position: absolute; top: -50%; left: -20%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%); filter: blur(60px);"></div>
+        <div style="position: absolute; bottom: -30%; right: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%); filter: blur(40px);"></div>
+        
+        {/* 导航栏 */}
+        <nav style="position: relative; z-index: 10; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+          <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between;">
+            <a href="/" style="display: flex; align-items: center; gap: 8px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 20px; font-weight: 700; color: #ffffff; text-decoration: none;">
+              <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;">◆</span>
+              洞察
+            </a>
+            <ul style="display: flex; gap: 8px; list-style: none; margin: 0; padding: 0;">
+              <li><a href="/" style="padding: 8px 16px; font-size: 14px; color: rgba(255, 255, 255, 0.9); text-decoration: none; border-radius: 6px; transition: all 0.3s; background: rgba(255, 255, 255, 0.1);">首页</a></li>
+              <li><a href="/category/technology" style="padding: 8px 16px; font-size: 14px; color: rgba(255, 255, 255, 0.7); text-decoration: none; border-radius: 6px; transition: all 0.3s;">科技</a></li>
+              <li><a href="/category/world" style="padding: 8px 16px; font-size: 14px; color: rgba(255, 255, 255, 0.7); text-decoration: none; border-radius: 6px; transition: all 0.3s;">国际</a></li>
+              <li><a href="/category/business" style="padding: 8px 16px; font-size: 14px; color: rgba(255, 255, 255, 0.7); text-decoration: none; border-radius: 6px; transition: all 0.3s;">商业</a></li>
+            </ul>
+          </div>
+        </nav>
 
-      {/* Hero区域 */}
-      <section style="background: #ffffff; padding: 120px 24px 60px; text-align: center;">
-        <div style="max-width: 800px; margin: 0 auto;">
-          <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: clamp(40px, 6vw, 64px); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; color: #1d1d1f;">新闻速递</h1>
-          <p style="font-size: 21px; color: #6e6e73; margin-bottom: 40px;">汇聚全球资讯，洞察世界脉搏</p>
-          <div style="display: flex; justify-content: center; gap: 60px;">
-            <div style="text-align: center;">
-              <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 40px; font-weight: 600; color: #1d1d1f; margin-bottom: 4px;">{stats.total}</div>
-              <div style="font-size: 14px; color: #6e6e73;">今日文章</div>
+        {/* Hero区域 */}
+        <section style="position: relative; z-index: 10; padding: 48px 24px 32px; text-align: center;">
+          <div style="max-width: 800px; margin: 0 auto;">
+            {/* 实时状态指示器 */}
+            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 100px; margin-bottom: 24px;">
+              <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite;"></span>
+              <span style="font-size: 13px; color: rgba(255, 255, 255, 0.8);">实时更新中</span>
             </div>
-            <div style="text-align: center;">
-              <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 40px; font-weight: 600; color: #1d1d1f; margin-bottom: 4px;">{CATEGORIES.length}</div>
-              <div style="font-size: 14px; color: #6e6e73;">分类频道</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 40px; font-weight: 600; color: #1d1d1f; margin-bottom: 4px;">24/7</div>
-              <div style="font-size: 14px; color: #6e6e73;">实时更新</div>
+            
+            {/* 主标题 */}
+            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: clamp(32px, 5vw, 48px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 12px; color: #ffffff;">
+              新闻速递
+            </h1>
+            <p style="font-size: 16px; color: rgba(255, 255, 255, 0.6); margin-bottom: 32px;">汇聚全球资讯，洞察世界脉搏</p>
+            
+            {/* 统计卡片 */}
+            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+              <div style="padding: 16px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; min-width: 100px;">
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 28px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">{stats.total}</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">今日文章</div>
+              </div>
+              <div style="padding: 16px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; min-width: 100px;">
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 28px; font-weight: 700; color: #8b5cf6; margin-bottom: 4px;">{CATEGORIES.length}</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">分类频道</div>
+              </div>
+              <div style="padding: 16px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; min-width: 100px;">
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 28px; font-weight: 700; color: #06b6d4; margin-bottom: 4px;">24/7</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">实时更新</div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </header>
 
       {/* 分类标签 */}
       <section style="background: #ffffff; padding: 0 24px 40px; text-align: center;">
