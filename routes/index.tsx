@@ -1,7 +1,7 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import type { Article } from "../types/article.ts";
 import { CATEGORIES } from "../config/categories.ts";
-import { aggregateArticles } from "../lib/data/aggregator.ts";
+import { getCachedArticles } from "../lib/data/cachedAggregator.ts";
 
 interface Data {
   articles: Article[];
@@ -43,8 +43,8 @@ function cleanLink(link: string): string {
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
     try {
-      // 聚合 RSS 和飞书表格数据
-      const { articles, sources } = await aggregateArticles();
+      // 使用缓存获取聚合数据
+      const { articles, sources } = await getCachedArticles();
       
       // 统计各分类文章数量
       const byCategory: Record<string, number> = {};

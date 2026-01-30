@@ -1,7 +1,7 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import type { Article } from "../../types/article.ts";
 import { CATEGORIES } from "../../config/categories.ts";
-import { aggregateArticlesByCategory } from "../../lib/data/aggregator.ts";
+import { getCachedArticlesByCategory } from "../../lib/data/cachedAggregator.ts";
 
 interface Data {
   articles: Article[];
@@ -59,8 +59,8 @@ export const handler: Handlers<Data> = {
     }
     
     try {
-      // 聚合该分类的 RSS 和飞书数据
-      const { articles, sources } = await aggregateArticlesByCategory(slug);
+      // 使用缓存获取该分类数据
+      const { articles, sources } = await getCachedArticlesByCategory(slug);
       
       return ctx.render({
         articles,
